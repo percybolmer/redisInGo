@@ -1,0 +1,42 @@
+version: "3.0"
+services:
+  redis:
+    image: "redis:alpine"
+    # The Command will make redis-server run with our custom Configuration
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./redis/data:/data #Used for persisting data
+      - ./redis/conf:/usr/local/etc/redis #Used for configuring redis
+    networks:
+      - data_sharing
+  publisher:
+    # Makes the compose- build our Image based on the files in publisher folder
+    build:
+      context: ./publisher
+      dockerfile: Dockerfile
+    depends_on: 
+      - redis
+    networks:
+      - data_sharing
+  publisher2:
+    # Makes the compose- build our Image based on the files in publisher folder
+    build:
+      context: ./publisher
+      dockerfile: Dockerfile
+    depends_on: 
+      - redis
+    networks:
+      - data_sharing
+  subscriber:
+      build:
+        context: ./subscriber
+        dockerfile: Dockerfile
+      depends_on: 
+        - redis
+        - publisher
+      networks:
+        - data_sharing
+
+networks:
+  data_sharing:
+    driver: bridge
